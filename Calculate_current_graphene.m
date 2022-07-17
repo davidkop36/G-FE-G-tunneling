@@ -27,7 +27,6 @@ else
             full_exp = abs(k).*abs(k-k_vi(ii,jj)  ) ./ (1 + k.^2 + (k-k_vi(ii,jj)).^2 + Q_mis.^2 + 2 *tensorprod(abs(k).*abs(k-k_vi(ii,jj)),(tensorprod(cos(phi1),cos(phi2)) + tensorprod(sin(phi1),sin(phi2) ) )) +2* abs(Q_mis)*(tensorprod(abs(k), tensorprod(cos(phi1),unity_ma)  ) +  tensorprod(abs(k-k_vi(ii,jj)), tensorprod(unity_ma,cos(phi2))  )   )    ).^2;
             full_exp = squeeze(full_exp);
             I1(ii,jj) = trapz(k,trapz(phi1,trapz(phi2, full_exp,3),2),1);
-         %   I1(ii,jj) = sum(full_exp(:)); %primitive, but just now, for testing purposes
     
         end
     end
