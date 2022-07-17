@@ -7,6 +7,7 @@ d = 5e-9; % Junction thickness. Default to 5nm . Try 1nm, per Moshe's recommenda
 d_gate = 90e-9; %gate thickness, 15e-9 standard 
 theta  = 2 *pi/180; %twist angle in between two graphene sheets
 V_kp_0 =+0.1 % Bare ferroelctricity voltage
+qc = (12e-9)^(-1); % Scattering potential shape paramaterer (value according to Brittnel)
 
 % Bias_gate range of interest
 V_b_max = 2;
@@ -268,7 +269,7 @@ V_all_rep = repmat(V_all',1,length(Vg_all));
 Vi = V_all_rep + Ef_top - Ef_bott;
 %Vi = V_all_rep - Ef_top + Ef_bott;
 
-qc = (12e-9)^(-1);
+
 gamma = e_el*(Ef_bott-Ef_top-V_all_rep)/(hbar*Vf*qc);
 kt1 = Ef_top*e_el/(hbar*Vf*qc);
 %kt2 = (Ef_top+V_all_rep)*e_el/(hbar*Vf*qc);
@@ -593,11 +594,6 @@ ax = gca;
 ax.FontSize = 15;
 
 
-%% Debug
-
-
-
-%
 
 
 %% Saving
@@ -623,118 +619,7 @@ I_V.Vkp3=Vkp3;
 
 
 save('I_V_16','I_V')
-%[V_all,Vg_all,I1,Q_all,Q_bottom,Vi,qc,Vkp] =   ExtractSavedParamters(I_V);
-%%
-% 
-% xx  = Q_bottom(ind,:);
-% yy = (Vkp(ind,:)-Vkp2_intp)./(2*V_kp_0);
-% 
-% 
-% %%
-% kbT = 0.025;
-% q_max = 0.1*  4*pi/(3*0.142);
-% z_faktor = 500;
-% kb = linspace(0,q_max,1000);
-% kt = linspace(0,q_max,1000);
-% %angles = linspace(0,2*pi,1000);
-% %Vf = 1e6;
-% hbar2 =6.582e-16 * 1e9;
-% %kbt = 0.025;
-% % zero gate
-% 
-% 
-% for ii=1:length(V_all)
-%     for jj=1:length(Vg_all)
-% mu_b = Ef_bott(ii,jj); % +P
-% mu_t = Ef_top(ii,jj); % +P
-% % mu_b_1 = Vg - deltaE_all_1(ind,ii); %-P
-% % mu_t_1 = Vg + deltaE_all_1(ind,ii); % -P
-% 
-% fb_qb = 1./(1+exp((kb*Vf*hbar2-mu_b)/kbT));
-% ft_qb = 1./(1+exp((kt*Vf*hbar2-mu_t)/kbT));
-% ft_minus_qb = 1./(1+exp((-kb*Vf*hbar2-mu_b)/kbT));
-% ft_minus_qt = 1./(1+exp((-kt*Vf*hbar2-mu_t)/kbT));
-% 
-% % fb_qb_1 = 1./(1+exp((kb*Vf*hbar2-mu_b_1)/kbT)); %-P
-% % ft_qb_1 = 1./(1+exp((kt*Vf*hbar2-mu_t_1)/kbT));
-% % ft_minus_qb_1 = 1./(1+exp((-kb*Vf*hbar2-mu_b_1)/kbT));
-% % ft_minus_qt_1 = 1./(1+exp((-kt*Vf*hbar2-mu_t_1)/kbT));
-% 
-% j = zeros(length(kb),length(kt));
-% j2 = j;
-% j3 = j;
-% 
-% j = -abs(kb'*kt).*(qc^2+(kb').^2+ kt.^2).*(1./(qc^2+(kb'+kt).^2).^(3/2) .* 1./(qc^2+(kb'-kt).^2)^(3/2) )  .* (abs((kb'-kt)*hbar2*Vf+Vi(ind,ii)) < q_max/z_faktor ) .* (fb_qb' -ft_qb) ;% + (1/qc^2-1./(qc^2+4*kb.^2)).*(fb_qb-ft_minus_qb);
-% j2 = -abs(kb'*kt).*(qc^2+(kb').^2+ kt.^2).*(1./(qc^2+(kb'+kt).^2).^(3/2) .* 1./(qc^2+(kb'-kt).^2)^(3/2))  .* (abs((kb'-kt)*hbar2*Vf-Vi(ind,ii)) < q_max/z_faktor ) .* (ft_minus_qb' -ft_minus_qt);
-% %hole hole
-% %j1_1 = -(1./(qc^2+(kb'+kt).^2) - 1./(qc^2+(kb'-kt).^2))  .* (abs((kb'-kt)*hbar2*Vf+Vi_1(ind,ii)) < q_max/z_faktor ) .* (fb_qb_1' -ft_qb_1) ;% + (1/qc^2-1./(qc^2+4*kb.^2)).*(fb_qb-ft_minus_qb);
-% %j2_1 = -(1./(qc^2+(kb'+kt).^2) - 1./(qc^2+(kb'-kt).^2))  .* (abs((kb'-kt)*hbar2*Vf-Vi_1(ind,ii)) < q_max/z_faktor ) .* (ft_minus_qb_1' -ft_minus_qt_1);
-% 
-% if Vi(ii,jj)>=0
-% %j3  =- (1./(qc^2+(kb'+kt).^2) - 1./(qc^2+(kb'-kt).^2)).* (abs((kb'+kt)*hbar2*Vf-Vi(ind,ii)) < q_max/1000 ) .* (fb_qb' -ft_minus_qt);  % electron-hole
-% j3  = -abs(kb'*kt).*(qc^2+(kb').^2+ kt.^2).*(1./(qc^2+(kb'+kt).^2).^(3/2) .* 1./(qc^2+(kb'-kt).^2).^(3/2)).* (abs((kb'+kt)*hbar2*Vf-Vi(ind,ii)) < q_max/z_faktor ) .* (ft_minus_qb' -ft_qb);  % electron-hole    
-% 
-% else
-% %j3  = -(1./(qc^2+(kb'+kt).^2) - 1./(qc^2+(kb'-kt).^2)).* (abs((kb'+kt)*hbar2*Vf-Vi(ind,ii)) < q_max/1000 ) .* (ft_minus_qb' -ft_qb);  % electron-hole    
-% j3  = -abs(kb'*kt).*(qc^2+(kb').^2+ kt.^2).*(1./(qc^2+(kb'+kt).^2).^(3/2) .* 1./(qc^2+(kb'-kt).^2).^(3/2)).* (abs((kb'+kt)*hbar2*Vf+Vi(ind,ii)) < q_max/z_faktor ) .* (fb_qb' -ft_minus_qt);  % electron-hole
-% end
-% 
-% % if Vi_1(ind,ii)>=0
-% % j3_1  = -(1./(qc^2+(kb'+kt).^2) - 1./(qc^2+(kb'-kt).^2)).* (abs((kb'+kt)*hbar2*Vf-Vi_1(ind,ii)) < q_max/z_faktor ) .* (ft_minus_qb_1' -ft_qb_1);  % electron-hole    
-% % else
-% %  j3_1  =- (1./(qc^2+(kb'+kt).^2) - 1./(qc^2+(kb'-kt).^2)).* (abs((kb'+kt)*hbar2*Vf+Vi_1(ind,ii)) < q_max/z_faktor ) .* (fb_qb_1' -ft_minus_qt_1);  % electron-hole
-% % end   
-% 
-% 
-% 
-% 
-% j_all_1(ii,jj) = sum(j,'all');
-% j_all_2(ii,jj) = sum(j2,'all');
-% j_all_3(ii,jj) = sum(j3,'all');
-% % j_all_1_1(ii) = sum(j1_1,'all');
-% % j_all_2_1(ii) = sum(j2_1,'all');
-% % j_all_3_1(ii) = sum(j3_1,'all');
-% 
-% I(ii,jj) =j_all_1(ii,jj)+j_all_2(ii,jj)+j_all_3(ii,jj);
-% 
-% 
-% %I_1(ii) =j_all_1_1(ii)+j_all_2_1(ii)+j_all_3_1(ii);
-% % 
-%     end
-% end
-% 
-% figure;
-% surf(V_all,Vg_all,real(j_all_1)');
-% figure;
-% surf(V_all,Vg_all,real(j_all_2)');
-% figure;
-% surf(V_all,Vg_all,real(j_all_3)');
-% 
-% figure;
-% plot(V_all,I(:,25))
-% 
-% % %%
-% % %figure,plot(V_bias,I);
-% % figure,plot(V_bias,movmean(I,15));
-% % %figure,plot(V_bias,sgolayfilt(I,3,19));
-% % 
-% % 
-% % 
-% % %
-% % % I_ft = (fft(I));
-% % % zz = 1:1000;
-% % % sigma = 50;
-% % % gaussian = exp(-(zz/sigma).^2) + exp(-((1000-zz)/sigma).^2);
-% % % figure,plot(V_bias,ifft(I_ft.*gaussian));
-% % 
-% % %
-% % ax = gca;
-% % ax.XAxisLocation = 'origin';
-% % ax.YAxisLocation = 'origin';
-% % 
-% % [x0,y0] = ginput(1);
-% % [minValue,closestIndex] = min(abs(V_bias-x0));
-% % graphene_plot_band_structure(Vg,Vi(ind,closestIndex),deltaE_all(ind,closestIndex));
+
 %% condutance
 
 
