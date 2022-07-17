@@ -1,99 +1,86 @@
 clear all
-er = 3;
+
+% Input parameters of the model
+er = 3; %FE material dielectric constant
+er_gate = 3.8; %dielectric constant of the gate material
+d = 5e-9; % Junction thickness. Default to 5nm . Try 1nm, per Moshe's recommendation 
+d_gate = 90e-9; %gate thickness, 15e-9 standard 
+theta  = 2 *pi/180; %twist angle in between two graphene sheets
+V_kp_0 =+0.1 % Bare ferroelctricity voltage
+
+% Bias_gate range of interest
+V_b_max = 2;
+V_b_min = -2;
+V_g_max = 30;
+V_g_min = -30;
+
+course_grid = [101, 103]; %used for electrostatics calculation
+fine_grid = [1001, 1003]; %used for I-V current calculation
+
+
+%Physical constants
 e0 = 8.854e-12;
-%d = 3e-9;
-d = 5e-9; % Used to be 5nm . Try 1nm, per Moshe's recommendation 
-theta  = 2 *pi/180; %twist angle
-theta  = 0; %twist angle
-
-er_gate = 3.8;
-d_gate = 90e-9; %15e-9 standard 
-V_kp_0 =+0.1 % 0.10;%testing
 e_el = 1.602e-19;
-Vf = 1e6;
+Vf = 1e6; % Fermi velocity of graphene electrones
 hbar = 1.055e-34;
-symsq = @(x) sqrt(abs(x))*sign(x);
-beta = sqrt(pi/e_el^3)*hbar*Vf; 
-%beta=0;
-%% First time
 
-syms Q Q1
+
+%% Execution part
+
+% Derived parameters of the model
+beta = sqrt(pi/e_el^3)*hbar*Vf; 
 C0 = e0/d;
 C1 = e0*er_gate/d_gate;
-V_all = linspace(-20,20,101); % - 2 to 2 put back
-%Vg_all = linspace(-2,2,103);
-Vg_all = linspace(-50,50,103); % - 30 to 30 put back
+
+V_all = linspace(V_b_min,V_b_max,course_grid(1)); 
+Vg_all = linspace(V_g_min,V_g_max,course_grid(2)); 
+
+
+%Custom functions 
+symsq = @(x) sqrt(abs(x))*sign(x); 
+syms Q Q1
+
+
 for ii=1:length(V_all)
     V = V_all(ii);
     for jj=1:length(Vg_all)
+        % Solve for positive polarization
         Vg = Vg_all(jj);
         eq1 = (Q/(C0*er) - V - V_kp_0 + beta * (symsq(Q) - symsq(Q1-Q))) == 0;
         eq2  = (Q1/C1 - Vg + beta * (symsq(Q1-Q))) == 0;
-
         [Q_eq,Q1_eq] = vpasolve([eq1,eq2],[Q,Q1]);
         Q_all(ii,jj) = Q_eq;
         Q1_all(ii,jj) = Q1_eq;
         
-    end
-end
-%%
-Q_all = eval(Q_all);
-Q1_all = eval(Q1_all);
-Vkp = - Q_all/(C0*er) + V_kp_0;
- figure;
- surf(Vg_all,V_all,abs(Q_all));
-figure;
-  surf(Vg_all,V_all,abs(Q1_all-Q_all));
-
-
-
-
-%% 2nd time
-
-for ii=1:length(V_all)
-    V = V_all(ii);
-    for jj=1:length(Vg_all)
-        Vg = Vg_all(jj);
+        % Solve for negative polarization
         eq1 = (Q/(C0*er) - V + V_kp_0 + beta * (symsq(Q) - symsq(Q1-Q))) == 0;
         eq2  = (Q1/C1 - Vg + beta * (symsq(Q1-Q))) == 0;
-
         [Q_eq,Q1_eq] = vpasolve([eq1,eq2],[Q,Q1]);
         Q_all2(ii,jj) = Q_eq;
         Q1_all2(ii,jj) = Q1_eq;
         
-    end
-end
-
-Q_all2 = eval(Q_all2);
-Q1_all2 = eval(Q1_all2);
-
-Vkp2 = - Q_all2/(C0*er) - V_kp_0;
-
-%% 3rd time
-%% 2nd time
-
-for ii=1:length(V_all)
-    V = V_all(ii);
-    for jj=1:length(Vg_all)
-        Vg = Vg_all(jj);
+        % Solve for the absence of the polarization
         eq1 = (Q/(C0*er) - V  + beta * (symsq(Q) - symsq(Q1-Q))) == 0;
         eq2  = (Q1/C1 - Vg + beta * (symsq(Q1-Q))) == 0;
-
         [Q_eq3,Q1_eq3] = vpasolve([eq1,eq2],[Q,Q1]);
         Q_all3(ii,jj) = Q_eq3;
-        Q1_all3(ii,jj) = Q1_eq3;
+        Q1_all3(ii,jj) = Q1_eq3;   
         
     end
 end
 
+Q_all = eval(Q_all);
+Q1_all = eval(Q1_all);
+
+Q_all2 = eval(Q_all2);
+Q1_all2 = eval(Q1_all2);
+
 Q_all3 = eval(Q_all3);
 Q1_all3 = eval(Q1_all3);
 
-Vkp3 = - Q_all2/(C0*er) ;
-%%
 %% Interpolate to higher resolution
-Vg_fine = linspace(Vg_all(1),  Vg_all(end),1003);
-V_fine = linspace(V_all(1),  V_all(end),1001);
+Vg_fine = linspace(Vg_all(1),  Vg_all(end),fine_grid(2));
+V_fine = linspace(V_all(1),  V_all(end),fine_grid(1));
 [xq,yq] = ndgrid(V_fine,Vg_fine);
 [x0,y0] = ndgrid(V_all,Vg_all);
 
@@ -117,47 +104,25 @@ Q1_all3 = F3(xq,yq);
 V_all = V_fine;
 Vg_all = Vg_fine;
 
-
+% Calculate the energetical mismatch between the Dirac cones 
 Vkp = - Q_all/(C0*er) + V_kp_0;
 Vkp2 = - Q_all2/(C0*er) - V_kp_0;
-Vkp3 = - Q_all3/(C0*er); %+ V_kp_0;
+Vkp3 = - Q_all3/(C0*er);
 
-
-%%
-
-
-
-figure;
-surf(Vg_all,V_all,Vkp-Vkp2);
-xlabel('Gate voltage','FontSize',15);
-ylabel('Bias voltage','FontSize',15);
-zlabel('KP voltage difference','FontSize',15)
-
-%%
+%Visulize the difference in KP voltage
 figure;
 f_thing = (Vkp-Vkp2)/(2*V_kp_0);
 contourf(V_all,Vg_all,f_thing',12)
-%imagesc(V_all,Vg_all,((Vkp-Vkp2)/(2*V_kp_0))')
-
 ylabel('Gate voltage [V]','FontSize',15);
 xlabel('Bias voltage [V]','FontSize',15);
 set(gca,'YDir','normal')
 ax = gca;
 ax.FontSize = 20;
+colorbar;
 
-
-
-%% Additional stuff
+%% Preview charge plots
 figure;
-imagesc(Vg_all,V_all,abs(Vkp./V_kp_0-1));
-xlabel('Gate voltage');
-ylabel('Bias voltage');
-
-figure;
-%contourf(Vg_all,V_all,(Q_bottom));
-%imagesc(V_all,Vg_all,(Q1_all-Q_all));
 imagesc(V_all,Vg_all,(Q1_all-Q_all));
-
 xlabel('V_b');
 ylabel('V_g');
 colorbar;
@@ -170,22 +135,6 @@ ylabel('V_g');
 title('Charge on the top graphene')
 colorbar;
 set(gca,'YDir','normal');
-%%
-% ind = 600;
-% figure;
-% plot(Vg_all,(Vkp(ind,:)./V_kp_0));
-% xlabel('Vg [V]');
-% ylabel('V_{kp}/V_{kp}^{(0)} ');
-% title(['V_{kp} vs gate voltage for Vb = ',num2str(V_all(ind))  ])
-% % limit cases
-% V_kp_mod = -V_all(ind) - beta*sqrt(abs(Vg_all*C1)).*sign(Vg_all);
-% Q_small = (sqrt(abs(Vg_all*C1)) .*sign(Vg_all) + (V_all(ind)+V_kp_0)/beta ).^2 .* sign((sqrt(abs(Vg_all*C1)) .*sign(Vg_all) + (V_all(ind)+V_kp_0)/beta ));
-% V_kp_small = -Q_small/(er*C0) + V_kp_0;
-% hold on
-% plot(Vg_all,V_kp_mod./V_kp_0)
-% %plot(Vg_all,V_kp_small./V_kp_0)
-% legend('Numerical','Large chrage on bottom, moderate on top')
-
 
 
 %%
