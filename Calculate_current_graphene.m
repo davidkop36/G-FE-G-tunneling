@@ -47,7 +47,6 @@ else
                         d1 = 2*abs(Q_mis.*(k-k_vi(ii,jj)));
                         full_exp = 2*pi*abs(k).*abs(k-k_vi(ii,jj)  ).*abs(a1+c1*cos(phi)) ./ (abs(a1.^2+c1.^2-b1.^2-d1.^2 + 2*(a1.*c1-b1.*d1)*cos(phi) )).^(3/2) ;
                         I1(ii,jj) = trapz(k,trapz(phi, full_exp,2),1);
-                     %   I1(ii,jj) = sum(full_exp(:)); %primitive, but just now, for testing purposes
                 
                     end
                 end
