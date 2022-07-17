@@ -191,23 +191,7 @@ hold off
 indg =600;
 Q0 = (V_all+V_kp_0)*er*C0;
 Q0_prim = Vg_all(indg)*C1;
-% a1 = 1/(er*C0);
-% a2 = 1/C1;
-% b1= beta./(2*sqrt(abs(Q0)));
-% b2= beta./(2*sqrt(abs(Q0_prim-Q0)));
-% c1 = -beta*sqrt(abs(Q0)).*sign(Q0);
-% c2 =  beta*(2*sqrt(abs(Q0_prim-Q0))).*sign(Q0_prim-Q0);
-% 
-% delta_Q  = (a2.*c1+b2.*c1+a2.*c2)./(a1.*a2 + a1.*b2 + a2.*b1+b1.*b2+a2.*b2);
-% delta_Q_prim  = (b2.*c1-a1.*c2-b1.*c2)./(a1.*a2 + a1.*b2 + a2.*b1+b1.*b2+a2.*b2);
-% 
-% Q02 = (V_all - V_kp_0)*er*C0;
-% a1 = 1/(er*C0);
-% a2 = 1/C1;
-% b1= beta./(2*sqrt(abs(Q02)));
-% b2= beta./(2*sqrt(abs(Q0_prim-Q02)));
-% c1 = -beta*sqrt(abs(Q02)).*sign(Q02);
-% c2 =  beta*(2*sqrt(abs(Q0_prim-Q02))).*sign(Q0_prim-Q02);
+
 % 
 % delta_Q2  = (a2.*c1+b2.*c1+a2.*c2)./(a1.*a2 + a1.*b2 + a2.*b1+b1.*b2+a2.*b2);
 % delta_Q_prim2  = (b2.*c1-a1.*c2-b1.*c2)./(a1.*a2 + a1.*b2 + a2.*b1+b1.*b2+a2.*b2);
