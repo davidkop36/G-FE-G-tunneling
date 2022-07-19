@@ -1,6 +1,6 @@
 clear all
 
-% Input parameters of the model
+%% Input parameters of the model
 er = 3; %FE material dielectric constant
 er_gate = 3.8; %dielectric constant of the gate material
 d = 5e-9; % Junction thickness. Default to 5nm . Try 1nm, per Moshe's recommendation 
@@ -18,6 +18,8 @@ V_g_min = -30;
 course_grid = [101, 103]; %used for electrostatics calculation
 fine_grid = [1001, 1003]; %used for I-V current calculation
 
+% plot customization
+plot_type_option = 1; %set to 1 to plot I_{+} on the color plot or to 2 to plot I_{+} + I_{-}
 
 %Physical constants
 e0 = 8.854e-12;
@@ -192,13 +194,6 @@ indg =600;
 Q0 = (V_all+V_kp_0)*er*C0;
 Q0_prim = Vg_all(indg)*C1;
 
-% 
-% delta_Q2  = (a2.*c1+b2.*c1+a2.*c2)./(a1.*a2 + a1.*b2 + a2.*b1+b1.*b2+a2.*b2);
-% delta_Q_prim2  = (b2.*c1-a1.*c2-b1.*c2)./(a1.*a2 + a1.*b2 + a2.*b1+b1.*b2+a2.*b2);
-% 
-% 
-% f_fit = 1 - (Q0+delta_Q-Q02-delta_Q2)./(2*V_kp_0*er*C0);
-%f_fit2 =  - (delta_Q-delta_Q2)./(2*V_kp_0*er*C0);
 f_fit2 =  beta*sqrt(er*C0./V_all);
 
 figure;
@@ -216,20 +211,6 @@ f_fit_peak = 2./(sqrt(1+4*abs(V_all+V_kp_0)./(C0*er*beta^2)) +sqrt(1+4*abs(V_all
 %plot(V_all(-V_all*sign(Vg_all(indg)) > 0),f_fit_peak(-V_all*sign(Vg_all(indg)) > 0),'g.-','LineWidth',2)
 
 
-%%
-% figure
-% plot(Q1_all(ind,:))
-% hold on
-% plot(Q1_all2(ind,:))
-% 
-% hold off
-
-% In terms of charge
-% figure
-% plot(Q1_all(ind,:),Vkp(ind,:)/V_kp_0)
-% hold on
-% plot(Q1_all2(ind,:),Vkp2(ind,:)/V_kp_0)
-% hold off
 Q_bottom= Q1_all-Q_all;
 Q_bottom_2 = Q1_all2-Q_all2;
 Q_bottom_3 = Q1_all3-Q_all3;
@@ -251,48 +232,26 @@ Ef_top = -sqrt(4*pi*abs(Q_all)/e_el).*sign(Q_all)*hbar*Vf/(2*e_el);
 Ef_bott = -sqrt(4*pi*abs(Q_bottom)/e_el).*sign(Q_bottom)*hbar*Vf/(2*e_el);
 V_all_rep = repmat(V_all',1,length(Vg_all));
 Vi = V_all_rep + Ef_top - Ef_bott;
-%Vi = V_all_rep - Ef_top + Ef_bott;
 
 
 gamma = e_el*(Ef_bott-Ef_top-V_all_rep)/(hbar*Vf*qc);
 kt1 = Ef_top*e_el/(hbar*Vf*qc);
-%kt2 = (Ef_top+V_all_rep)*e_el/(hbar*Vf*qc);
 kt2 = (Ef_top+V_all_rep)*e_el/(hbar*Vf*qc);
 k_vi = e_el*Vi/(hbar*Vf*qc);
-%k_vi = -e_el*Vi/(hbar*Vf*qc);
 
 %down
 Ef_top_2 =- sqrt(4*pi*abs(Q_all2)/e_el).*sign(Q_all2)*hbar*Vf/(2*e_el);
 Ef_bott_2 = -sqrt(4*pi*abs(Q_bottom_2)/e_el).*sign(Q_bottom_2)*hbar*Vf/(2*e_el);
 Ef_top_3 =- sqrt(4*pi*abs(Q_all3)/e_el).*sign(Q_all3)*hbar*Vf/(2*e_el);
 Ef_bott_3 =- sqrt(4*pi*abs(Q_bottom_3)/e_el).*sign(Q_bottom_3)*hbar*Vf/(2*e_el);
-%V_all_rep = repmat(V_all',1,length(Vg_all));
 Vi_2 = V_all_rep + Ef_top_2 - Ef_bott_2;
 Vi_3 = V_all_rep + Ef_top_3 - Ef_bott_3;
-
-%Vi_2 = V_all_rep - Ef_top_2 + Ef_bott_2;
-%Vi_3 = V_all_rep - Ef_top_3 + Ef_bott_3;
-
 gamma_2 = e_el*(Ef_bott_2-Ef_top_2-V_all_rep)/(hbar*Vf*qc);
 kt1_2 = Ef_top_2*e_el/(hbar*Vf*qc);
-%kt2_2 = (Ef_top_2+V_all_rep)*e_el/(hbar*Vf*qc);
 kt2_2 = (Ef_top_2+V_all_rep)*e_el/(hbar*Vf*qc);
 
 k_vi_2 = e_el*Vi_2/(hbar*Vf*qc);
-%k_vi_2 = -e_el*Vi_2/(hbar*Vf*qc);
 
-% for ii=1:size(kt1,1)
-%     for jj=1:size(kt1,2)
-%         k = linspace(kt1(ii,jj),kt2(ii,jj),1000);
-% 
-%         I1(ii,jj) = trapz(k, abs(k-k_vi(ii,jj)).*abs(k).*(1+k.^2 + (k - k_vi(ii,jj) ).^2  ) ./ ( (1 + k_vi(ii,jj)^2)^(3/2) .* (1 + (2*k-k_vi(ii,jj)).^2 ).^(3/2)    ));
-% 
-% 
-%     end
-% end
-
-%I1 = Calculate_current_graphene(kt1,kt2,k_vi);
-%I2 = Calculate_current_graphene(kt1_2,kt2_2,k_vi_2);
 reduced_twist_vector = (8*pi/(3*1.42e-10))*sin(theta/2)/qc;
 I1 = Calculate_current_graphene(kt1,kt2,k_vi,reduced_twist_vector);
 I2 = Calculate_current_graphene(kt1_2,kt2_2,k_vi_2,reduced_twist_vector);
@@ -399,7 +358,7 @@ Qcompens_zero_locus_0 = ExtractMinimumInDirection(abs(Q_all + Q_all2),1);
 % Theoretical curves over
 %%
 
-plot_type_option = 1;
+
 
 figure;
 if plot_type_option==2
@@ -417,24 +376,6 @@ set(gca,'YDir','normal')
 hold on
 lw_def = 2;
 
-% 
-% 
-% figure;
-% imagesc(real(I_twist)')
-% xlabel('Bias [V]')
-% ylabel('Gate voltage [V]')
-% set(gca,'YDir','normal')
-
-
-% plot(V_all(Vi_zero_locus),Vg_all,'r--','LineWidth',lw_def)
-% plot(V_all(Qtop_zero_locus),Vg_all,'g--','LineWidth',lw_def)
-% plot(V_all(Qbottom_zero_locus),Vg_all,'y--','LineWidth',lw_def)
-% plot(V_all(Vi_zero_locus_2),Vg_all,'r-.','LineWidth',lw_def)
-% plot(V_all(Qtop_zero_locus_2),Vg_all,'g-.','LineWidth',lw_def)
-% plot(V_all(Qbottom_zero_locus_2),Vg_all,'y-.','LineWidth',lw_def)
-% %plot(V_all(Vi_zero_locus_0),Vg_all,'r','LineWidth',lw_def)
-% plot(V_all(Qtop_zero_locus_0),Vg_all,'g','LineWidth',lw_def)
-% plot(V_all(Qbottom_zero_locus_0),Vg_all,'y','LineWidth',lw_def)  
 
 
 %theoretical curves
