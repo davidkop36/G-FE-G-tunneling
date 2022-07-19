@@ -5,8 +5,8 @@ er = 3; %FE material dielectric constant
 er_gate = 3.8; %dielectric constant of the gate material
 d = 5e-9; % Junction thickness. Default to 5nm . Try 1nm, per Moshe's recommendation 
 d_gate = 90e-9; %gate thickness, 15e-9 standard 
-theta  = 2 *pi/180; %twist angle in between two graphene sheets
-V_kp_0 =+0.1 % Bare ferroelctricity voltage
+theta  =0; % 2 *pi/180; %twist angle in between two graphene sheets
+V_kp_0 = +0.1; % Bare ferroelctricity voltage
 qc = (12e-9)^(-1); % Scattering potential shape paramaterer (value according to Brittnel)
 
 % Bias_gate range of interest
@@ -112,6 +112,12 @@ Vkp = - Q_all/(C0*er) + V_kp_0;
 Vkp2 = - Q_all2/(C0*er) - V_kp_0;
 Vkp3 = - Q_all3/(C0*er);
 
+% bottom sheet charges
+
+Q_bottom= Q1_all-Q_all;
+Q_bottom_2 = Q1_all2-Q_all2;
+Q_bottom_3 = Q1_all3-Q_all3;
+
 %Visulize the difference in KP voltage
 figure;
 f_thing = (Vkp-Vkp2)/(2*V_kp_0);
@@ -140,66 +146,17 @@ colorbar;
 set(gca,'YDir','normal');
 
 
-%%
-ind=600;
-figure;
-diffs = (Vkp-Vkp2)./(2*V_kp_0);
-diffs_zero = diffs(ind,:);
-plot(Vg_all,diffs(ind,:),'LineWidth',2)
-xlabel('Gate voltage [V]','FontSize',20)
-ylabel(' $\frac{V_{kp}^+ - V_{kp}^-}{2*V_{kp}^0}$','FontSize',20,'interpreter','latex')
-title(['For Vb = ',num2str(V_all(ind))  ],'FontSize',20)
-aa = 0.5*sqrt(beta*er*C0/sqrt(C1));
-g_plus = V_all(ind) + V_kp_0 +beta*sqrt(abs(Vg_all)*C1).*sign(Vg_all);
-g_minus= V_all(ind) - V_kp_0 +beta*sqrt(abs(Vg_all)*C1).*sign(Vg_all);
 
-asymp = aa*(abs(Vg_all)).^(-1/4);
-asymp2 = 2*beta./(sqrt(beta^2+4*abs(g_plus)/(er*C0))  + sqrt(beta^2+4*abs(g_minus)/(er*C0))  );
-
-hold on
-plot(Vg_all(Vg_all>0.5),asymp(Vg_all > 0.5),'LineWidth',2)
-legend('Numerical curve','Asymptotic expansion','Location','bestoutside','FontSize',15)
-%plot(Vg_all(Vg_all>0),asymp2(Vg_all > 0))
-ax = gca;
-ax.FontSize = 20;
-
-hold off
-%% Cut along fixed gate
-
-indg=700;
-figure;
-diffs = (Vkp-Vkp2)./(2*V_kp_0);
-diffs_zero = diffs(:,indg);
-plot(V_all,diffs(:,indg),'LineWidth',2);
-xlabel('Bias voltage [V]','FontSize',20)
-ylabel(' $\frac{V_{kp}^+ - V_{kp}^-}{2*V_{kp}^0}$','FontSize',20,'interpreter','latex')
-title(['For Vg = ',num2str(Vg_all(indg),'%.2f'),' V'  ],'FontSize',20)
-aa = 0.5*sqrt(beta*er*C0/sqrt(C1));
-g_plus = V_all+ V_kp_0 +beta*sqrt(abs(Vg_all(indg))*C1).*sign(Vg_all(indg));
-g_minus= V_all - V_kp_0 +beta*sqrt(abs(Vg_all(indg))*C1).*sign(Vg_all(indg));
-
-%asymp = aa*(abs(Vg_all)).^(-1/4);
-%asymp2 = 2*beta./(sqrt(beta^2+4*abs(g_plus)/(er*C0))  + sqrt(beta^2+4*abs(g_minus)/(er*C0))  );
-
-legend('Numerical curve','Asymptotic expansion','Location','bestoutside','FontSize',15)
-%plot(Vg_all(Vg_all>0),asymp2(Vg_all > 0))
-ax = gca;
-ax.FontSize = 20;
-
-hold off
-
-
-%%
-indg =600;
+%% Asymptotic expression vs the numeric results
+indg =floor(0.6*size(V_all,2));
 Q0 = (V_all+V_kp_0)*er*C0;
 Q0_prim = Vg_all(indg)*C1;
 
 f_fit2 =  beta*sqrt(er*C0./V_all);
 
 figure;
-diffs = (Vkp-Vkp2)./(2*V_kp_0);
-diffs_zero = diffs(:,indg);
-plot(V_all,diffs(:,indg),'LineWidth',2);
+f_thing_zero = f_thing(:,indg);
+plot(V_all,f_thing(:,indg),'LineWidth',2);
 xlabel('V_b [V]','FontSize',20)
 ylabel(' f','FontSize',20)
 title(['For V_g = ',num2str(Vg_all(indg),'%.2f'),' V'  ],'FontSize',20)
@@ -208,26 +165,9 @@ plot(V_all((V_all)>V_kp_0*4),f_fit2((V_all)>V_kp_0*4),'r--','LineWidth',2)
 
 f_fit_peak = 2./(sqrt(1+4*abs(V_all+V_kp_0)./(C0*er*beta^2)) +sqrt(1+4*abs(V_all-V_kp_0)./(C0*er*beta^2))  );
 
-%plot(V_all(-V_all*sign(Vg_all(indg)) > 0),f_fit_peak(-V_all*sign(Vg_all(indg)) > 0),'g.-','LineWidth',2)
-
-
-Q_bottom= Q1_all-Q_all;
-Q_bottom_2 = Q1_all2-Q_all2;
-Q_bottom_3 = Q1_all3-Q_all3;
-
-figure;
-Vkp2_intp = interp1(Q_bottom_2(ind,:),Vkp2(ind,:),Q_bottom(ind,:));
-plot(Q_bottom(ind,:),(Vkp(ind,:)-Vkp2_intp)./(2*V_kp_0))  ;
-xlabel('Q_{bottom}')
-ylabel('(Vkp-Vkp2)./(2*V_{kp}^0)')
-title(['For Vb = ',num2str(V_all(ind))  ])
-hold on
-
-
-
 
 %% Find Fermi energies relative to Dirac point
-% up
+% Polarization up
 Ef_top = -sqrt(4*pi*abs(Q_all)/e_el).*sign(Q_all)*hbar*Vf/(2*e_el);
 Ef_bott = -sqrt(4*pi*abs(Q_bottom)/e_el).*sign(Q_bottom)*hbar*Vf/(2*e_el);
 V_all_rep = repmat(V_all',1,length(Vg_all));
@@ -239,7 +179,7 @@ kt1 = Ef_top*e_el/(hbar*Vf*qc);
 kt2 = (Ef_top+V_all_rep)*e_el/(hbar*Vf*qc);
 k_vi = e_el*Vi/(hbar*Vf*qc);
 
-%down
+% Polarization down 
 Ef_top_2 =- sqrt(4*pi*abs(Q_all2)/e_el).*sign(Q_all2)*hbar*Vf/(2*e_el);
 Ef_bott_2 = -sqrt(4*pi*abs(Q_bottom_2)/e_el).*sign(Q_bottom_2)*hbar*Vf/(2*e_el);
 Ef_top_3 =- sqrt(4*pi*abs(Q_all3)/e_el).*sign(Q_all3)*hbar*Vf/(2*e_el);
@@ -253,10 +193,12 @@ kt2_2 = (Ef_top_2+V_all_rep)*e_el/(hbar*Vf*qc);
 k_vi_2 = e_el*Vi_2/(hbar*Vf*qc);
 
 reduced_twist_vector = (8*pi/(3*1.42e-10))*sin(theta/2)/qc;
+%% current calculation
 I1 = Calculate_current_graphene(kt1,kt2,k_vi,reduced_twist_vector);
 I2 = Calculate_current_graphene(kt1_2,kt2_2,k_vi_2,reduced_twist_vector);
-
-gde = 502;
+%%
+if theta == 0
+gde = floor(0.75*size(V_all,2));
 locs_all_local_max = find( islocalmax(abs(I1(:,gde))) == 1);
 max_location_peak = locs_all_local_max(find(max(abs(I1(locs_all_local_max,gde))) == abs(I1(locs_all_local_max,gde))  ));
 figure;
@@ -271,34 +213,10 @@ xlabel('Bias [V]','FontSize',20)
 ylabel('Current [a.u.]','FontSize',20)
 title(['Current vs. bias for Vg =  ',num2str(Vg_all(gde))] ,'FontSize',20)
 legend('Numerical I-V curve','Prefactor contribution to the peak','Location','bestoutside','FontSize',15)
+end
 
-
-figure;
-surf(V_all,Vg_all,real(I1)')
-xlabel('Bias [V]')
-ylabel('Gate voltage [V]')
-zlabel('Current [a.u.]')
-
-figure;
-contour(V_all,Vg_all,real(I1)',20)
-xlabel('Bias [V]')
-ylabel('Gate voltage [V]')
-
-% figure;
-% contour(V_all,Vg_all,real(I1-I2)',20)
-% xlabel('Bias [V]')
-% ylabel('Gate voltage [V]')
-figure;
-imagesc(V_all,Vg_all,abs(I1)')
-xlabel('Bias [V]')
-ylabel('Gate voltage [V]')
-
-
-
-
-
-%%
-gde1 =550;
+%% Plot the two I-V curves for a given gate on top of each other
+gde1 =floor(0.55*size(V_all,2));
 
 figure;
 plot(V_all,I1(:,gde1),'LineWidth',2)
@@ -309,110 +227,72 @@ ylabel('Current [a.u.]','FontSize',20)
 title(['Current vs. bias for Vg =  ',num2str(Vg_all(gde1),'%.2f'),'V'],'FontSize',20 )
 legend('V_{KP}^{(0)} > 0 ','V_{KP}^{(0)} < 0 ' ,'Location','bestoutside','FontSize',15)
 ax = gca;
-ax.FontSize = 15
-%%
-figure;
-imagesc(V_all,Vg_all,abs(Vi'))
-figure;
-surf(V_all,Vg_all,abs(Q_all'))
+ax.FontSize = 15;
 
-figure;
-imagesc(V_all,Vg_all,abs(I1'))
-hold on
-%Vi_zero_locus = ExtractMinimumInDirection(abs(Vi),1);
- Vi_zero_locus = ExtractMinimumInDirection(abs(Vi-reduced_twist_vector*qc*hbar*Vf/e_el),1);
-  Vi_zero_locus_other = ExtractMinimumInDirection(abs(Vi+reduced_twist_vector*qc*hbar*Vf/e_el),1);
-
+% exatract lines on 2D graphs corresponding to physically signficant cases
+Vi_zero_locus = ExtractMinimumInDirection(abs(Vi-reduced_twist_vector*qc*hbar*Vf/e_el),1);
+Vi_zero_locus_other = ExtractMinimumInDirection(abs(Vi+reduced_twist_vector*qc*hbar*Vf/e_el),1);
 Qtop_zero_locus = ExtractMinimumInDirection(abs(Q_all),1);
 Qbottom_zero_locus = ExtractMinimumInDirection(abs(Q_bottom),1);
-
-plot(V_all(Vi_zero_locus),Vg_all,'r')
-plot(V_all(Qtop_zero_locus),Vg_all,'g')
-plot(V_all(Qbottom_zero_locus),Vg_all,'y')
-
-hold off
-%%
-
-
-
-
 Vi_zero_locus_2 = ExtractMinimumInDirection(abs(Vi_2-reduced_twist_vector*qc*hbar*Vf/e_el),1);
 Vi_zero_locus_other_2= ExtractMinimumInDirection(abs(Vi_2+reduced_twist_vector*qc*hbar*Vf/e_el),1);
 Qtop_zero_locus_2 = ExtractMinimumInDirection(abs(Q_all2),1);
 Qbottom_zero_locus_2 = ExtractMinimumInDirection(abs(Q_bottom_2),1);
- Vi_zero_locus_0 = ExtractMinimumInDirection(abs(Vi_3-reduced_twist_vector*qc*hbar*Vf/e_el),1);
- Qtop_zero_locus_0 = ExtractMinimumInDirection(abs(Q_all3),1);
- Qbottom_zero_locus_0 = ExtractMinimumInDirection(abs(Q_bottom_3),1);
- Qprim_zero_locus_0 = ExtractMinimumInDirection(abs(Q1_all),1);
+Vi_zero_locus_0 = ExtractMinimumInDirection(abs(Vi_3-reduced_twist_vector*qc*hbar*Vf/e_el),1);
+Qtop_zero_locus_0 = ExtractMinimumInDirection(abs(Q_all3),1);
+Qbottom_zero_locus_0 = ExtractMinimumInDirection(abs(Q_bottom_3),1);
+Qprim_zero_locus_0 = ExtractMinimumInDirection(abs(Q1_all),1);
 
 
+% Qcompens_zero_locus_0 = ExtractMinimumInDirection(abs(Q_all + Q_all2),1);
 
-Qcompens_zero_locus_0 = ExtractMinimumInDirection(abs(Q_all + Q_all2),1);
-
-
+% For validation purposes one can compare the theoretical and numerical
+% curves
 [V_bias_zero_Q_bottom,V_gate_zero_Q_top,V_gate_zero_Vi]= CalculatePlotTheoreticalCurves(V_all,Vg_all,V_kp_0,C0,C1,beta,er,Qbottom_zero_locus,Qtop_zero_locus,Vi_zero_locus,theta);
 [V_bias_zero_Q_bottom2,V_gate_zero_Q_top2,V_gate_zero_Vi2]= CalculatePlotTheoreticalCurves(V_all,Vg_all,-V_kp_0,C0,C1,beta,er,Qbottom_zero_locus_2,Qtop_zero_locus_2,Vi_zero_locus_2,theta);
 %[V_bias_zero_Q_bottom0,V_gate_zero_Q_top0,V_gate_zero_Vi0]= CalculatePlotTheoreticalCurves(V_all,Vg_all,0,C0,C1,beta,er,Qbottom_zero_locus_0,Qtop_zero_locus_0,Vi_zero_locus_0);
 
 
-% Theoretical curves over
 %%
 
 
 
 figure;
 if plot_type_option==2
-%imagesc(V_all,Vg_all,(I2')+(I1'))
-uslov = abs(V_all) < 2;
-imagesc(V_all(uslov),Vg_all,(I2(uslov,:)')+(I1(uslov,:)'))
+    %plot the total equidomenial current in some range
+    imagesc(V_all,Vg_all,(I2')+(I1'));
 
 else
-imagesc(V_all,Vg_all,(I1'))
-
+    % plot just the positive orientation current onto 2D plot
+    imagesc(V_all,Vg_all,(I1'));
 end
 set(gca,'YDir','normal')
-
 
 hold on
 lw_def = 2;
 
-
-
-%theoretical curves
+%theoretical curves plot
 plot(V_all,V_gate_zero_Q_top,'g--','LineWidth',lw_def)
 plot(V_bias_zero_Q_bottom,Vg_all,'y--','LineWidth',lw_def)
-%plot(V_all,V_gate_zero_Vi,'r--','LineWidth',lw_def)
 if theta ==0
-plot(V_all,Vi_zero_locus,'r--','LineWidth',lw_def)
+    plot(V_all,Vi_zero_locus,'r--','LineWidth',lw_def)
 else
-plot(V_all(Vi_zero_locus),Vg_all,'r--','LineWidth',lw_def)
-plot(V_all(Vi_zero_locus_other),Vg_all,'r--','LineWidth',lw_def)
-
+    plot(V_all(Vi_zero_locus),Vg_all,'r--','LineWidth',lw_def)
+    plot(V_all(Vi_zero_locus_other),Vg_all,'r--','LineWidth',lw_def)
 end    
 
 plot(V_all,V_gate_zero_Q_top2,'g.','LineWidth',lw_def)
 plot(V_bias_zero_Q_bottom2,Vg_all,'y.','LineWidth',lw_def)
-%plot(V_all,V_gate_zero_Vi2,'r.','LineWidth',lw_def)
 if theta==0
-plot(V_all,Vi_zero_locus_2,'r--','LineWidth',lw_def)
+    plot(V_all,Vi_zero_locus_2,'r--','LineWidth',lw_def)
 else
-plot(V_all(Vi_zero_locus_2),Vg_all,'r.','LineWidth',lw_def)
-plot(V_all(Vi_zero_locus_other_2),Vg_all,'r.','LineWidth',lw_def)
-
+    plot(V_all(Vi_zero_locus_2),Vg_all,'r.','LineWidth',lw_def)
+    plot(V_all(Vi_zero_locus_other_2),Vg_all,'r.','LineWidth',lw_def)
 
 end 
 
-%plot(V_all(Qcompens_zero_locus_0),Vg_all,'m','LineWidth',lw_def)  
-%plot(V_all,V_gate_zero_Vi0,'b--','LineWidth',lw_def)  
-%plot(V_all(Vi_zero_locus_0),Vg_all,'b','LineWidth',lw_def)
-
-
-
-
 xlabel('Bias [V]','FontSize', 20)
 ylabel('Gate [V]','FontSize', 20)
-%%legend('V_i = 0, P>0',' Q_{top} = 0, P>0','Q_{bottom} = 0, P>0','V_i = 0, P<0', 'Q_{top} = 0, P<0','Q_{bottom} = 0, P<0','V_i = 0, P=0',' Q_{top}=0, P=0',' Q_{bottom}=0, P=0','Location','bestoutside'	)
-%legend('V_i = 0, P>0',' Q_{top} = 0, P>0','Q_{bottom} = 0, P>0','V_i = 0, P<0', 'Q_{top} = 0, P<0','Q_{bottom} = 0, P<0',' Q_{top}=0, P=0',' Q_{bottom}=0, P=0','Location','bestoutside','FontSize', 15	)
 if theta ==0
     legend('Q_{top}^{+}=0',' Q_{bottom}^{+}=0',' V_{KP}^{+}=0','Q_{top}^{-}=0',' Q_{bottom}^{-}=0',' V_{KP}^{-}=0','Location','bestoutside','FontSize', 15	)
 else
@@ -425,20 +305,20 @@ ax.FontSize = 15;
 title('I_{+}','FontSize', 20)
 colorbar;
 %% Plot at fixed gate
-closestIndex2 = 836; %Fix at 20V gate
-midindex = 661; %Fix at 9.52V gate
-
-%midindex = 502;
+% Pick points where to a make a 1D cut
+closestIndex2 = floor(0.834*size(Vg_all,2)); %Fix at 20V gate at 1003 points
+midindex = floor(0.66*size(Vg_all,2)); %Fix at 9.52V gate at 1003 points
 yline(Vg_all(closestIndex2));
 yline(Vg_all(midindex));
 
-
 if theta == 0
-[x0,y0] = ginput(6);
+%select points to plot the bandstructure at, default 6
+[x0,~] = ginput(6); 
 scatter(x0,repmat(Vg_all(closestIndex2),1,6))
 scatter(x0,repmat(Vg_all(midindex),1,6))
 else
-[x0,y0] = ginput(4);
+%select points to plot the bandstructure at, default 4
+[x0,~] = ginput(4);
 scatter(x0,repmat(Vg_all(closestIndex2),1,4))
 scatter(x0,repmat(Vg_all(midindex),1,4)) %comment out later
 
@@ -451,15 +331,13 @@ for ii=1:4
 if theta == 0
 graphene_plot_band_structure_qc_debug(V_all(closestIndex),Vg_all(closestIndex2),Vi(closestIndex,closestIndex2),Q_all(closestIndex,closestIndex2),Q_bottom(closestIndex,closestIndex2));
 graphene_plot_band_structure_qc_debug(V_all(closestIndex),Vg_all(midindex),Vi(closestIndex,midindex),Q_all(closestIndex,midindex),Q_bottom(closestIndex,midindex));
-% 2nd line is the zero bias plot
+% 2nd line is the midindex plot
 else
 graphene_plot_band_structure_qc_twisted_debug(V_all(closestIndex),Vg_all(closestIndex2),Vi(closestIndex,closestIndex2),Q_all(closestIndex,closestIndex2),Q_bottom(closestIndex,closestIndex2),theta);
-%comment out the 2nd line later
 end
 end
 
-
-%%
+%% Plot the I-V curves at those gates
 figure;
 
 plot(V_all,I1(:,closestIndex2)','-b','LineWidth',lw_def)
@@ -480,33 +358,9 @@ ylabel('I [a.u.]','FontSize', 20)
 legend('I^{(+)}','I^{(-)}','Location','bestoutside','FontSize', 15	)
 title(['I-V curve for ', num2str(Vg_all(midindex),'%.2f'), ' V'],'FontSize', 20)
 
-%%
-% Debug
-closestIndex2 = 836; %Fix at 20V gate
-yline(Vg_all(closestIndex2));
-[x0,y0] = ginput(5);
-scatter(x0,y0)
-hold off
-figure;
-for ii=1:5
-[minValue,closestIndex] = min(abs(V_all-x0(ii)));
-[minValue2,closestIndex2] = min(abs(Vg_all-y0(ii)));
-graphene_plot_band_structure_qc_debug(V_all(closestIndex),Vg_all(closestIndex2),Vi(closestIndex,closestIndex2),Q_all(closestIndex,closestIndex2),Q_bottom(closestIndex,closestIndex2));
-
-end
-
-% closestIndex = 860;
-% 
-% graphene_plot_band_structure_qc_debug(V_all(closestIndex),Vg_all(closestIndex2),Vi(closestIndex,closestIndex2),Q_all(closestIndex,closestIndex2),Q_bottom(closestIndex,closestIndex2));
-% graphene_plot_band_structure_qc_debug(V_all(closestIndex),Vg_all(closestIndex2),Vi_2(closestIndex,closestIndex2),Q_all2(closestIndex,closestIndex2),Q_bottom_2(closestIndex,closestIndex2));
-% graphene_plot_band_structure_qc_debug(V_all(closestIndex),Vg_all(closestIndex2),Vi_3(closestIndex,closestIndex2),Q_all3(closestIndex,closestIndex2),Q_bottom_3(closestIndex,closestIndex2));
-
-
-
-%graphene_plot_band_structure_qc_debug(V_all(closestIndex),Vg_all(closestIndex2),0,0,0);
-
 
 %% Distance between the peaks
+if theta ==0
 figure
 plot(Vg_all,V_all(Vi_zero_locus) -V_all(Vi_zero_locus_2),'LineWidth',lw_def)
 diff_theor = 2*beta*(er*C0*V_kp_0).^(1/2) + 2*beta*er*C0*V_kp_0./sqrt(beta^2*C1^2-4*Vg_all*C1);
@@ -518,68 +372,4 @@ legend('Numerical result','Asymptotic dependence derived from EOM-s','Fontsize',
 ax = gca;
 ax.FontSize = 15;
 
-
-
-
-%% Saving
-
-I_V.V_all= V_all;
-I_V.Vg_all= Vg_all;
-I_V.I1=I1;
-I_V.I2=I2;
-
-I_V.Q_all=Q_all;
-I_V.Q_bottom=Q_bottom;
-I_V.Q_all_2=Q_all2;
-I_V.Q_bottom_2=Q_bottom_2;
-I_V.Q_all_3=Q_all3;
-I_V.Q_bottom_3=Q_bottom_3;
-I_V.Vi=Vi;
-I_V.Vi2=Vi_2;
-I_V.Vi0=Vi_3;
-I_V.qc=qc;
-I_V.Vkp=Vkp;
-I_V.Vkp2=Vkp2;
-I_V.Vkp3=Vkp3;
-
-
-save('I_V_16','I_V')
-
-%% condutance
-
-
-figure, imagesc(abs(diff(I_twist_new,1,1)'))
-xlabel('Bias [V]')
-ylabel('Gate voltage [V]')
-set(gca,'YDir','normal')
-figure,imagesc(abs(diff(I1(1:10:end,1:10:end),1,1)'))
-xlabel('Bias [V]')
-ylabel('Gate voltage [V]')
-set(gca,'YDir','normal')
-
-
-figure, plot(((I_twist_new(:,80))'))
-%%
-
-TER =0.5*( (Q_all2/(6*C0*er)).^2 -  (Q_all/(6*C0*er)).^2);
-TER_as = repmat((-V_all*V_kp_0/12)',1,1003);
-TER_as2 = repmat((-V_all*V_kp_0/18)',1,1003);
-
-figure
-surf(V_all,Vg_all,TER')
-shading interp
-hold on
-%surf(V_all,Vg_all,TER_as')
-surf(V_all,Vg_all,(TER_as2)')
-
-shading interp
-hold off
-xlabel('V_b [V]')
-ylabel('V_g [V]')
-zlabel('TER')
-
-
-figure,
-plot(V_all,TER_as2(:,end))
-hold on
-plot(V_all,TER(:,end))
+end
