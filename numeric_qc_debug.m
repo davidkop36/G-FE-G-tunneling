@@ -275,7 +275,8 @@ lw_def = 2;
 plot(V_all,V_gate_zero_Q_top,'g--','LineWidth',lw_def)
 plot(V_bias_zero_Q_bottom,Vg_all,'y--','LineWidth',lw_def)
 if theta ==0
-    plot(V_all,Vi_zero_locus,'r--','LineWidth',lw_def)
+    %plot(V_all,Vi_zero_locus,'r--','LineWidth',lw_def)
+      plot(V_all(Vi_zero_locus),Vg_all,'r--','LineWidth',lw_def)
 else
     plot(V_all(Vi_zero_locus),Vg_all,'r--','LineWidth',lw_def)
     plot(V_all(Vi_zero_locus_other),Vg_all,'r--','LineWidth',lw_def)
@@ -284,7 +285,8 @@ end
 plot(V_all,V_gate_zero_Q_top2,'g.','LineWidth',lw_def)
 plot(V_bias_zero_Q_bottom2,Vg_all,'y.','LineWidth',lw_def)
 if theta==0
-    plot(V_all,Vi_zero_locus_2,'r--','LineWidth',lw_def)
+    %plot(V_all,Vi_zero_locus_2,'r--','LineWidth',lw_def)
+    plot(V_all(Vi_zero_locus_2),Vg_all,'r.','LineWidth',lw_def)
 else
     plot(V_all(Vi_zero_locus_2),Vg_all,'r.','LineWidth',lw_def)
     plot(V_all(Vi_zero_locus_other_2),Vg_all,'r.','LineWidth',lw_def)
