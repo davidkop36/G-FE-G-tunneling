@@ -1,7 +1,7 @@
 function I1=Calculate_current_graphene(kt1,kt2,k_vi,Q_mis)
 flag = 2;
 
-if nargin == 3
+if nargin == 3 %No twist
 
 for ii=1:size(kt1,1)
     for jj=1:size(kt1,2)
