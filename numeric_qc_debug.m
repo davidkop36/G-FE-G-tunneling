@@ -5,7 +5,8 @@ er = 3; %FE material dielectric constant
 er_gate = 3.8; %dielectric constant of the gate material
 d = 5e-9; % Junction thickness. Default to 5nm . Try 1nm, per Moshe's recommendation 
 d_gate = 90e-9; %gate thickness, 15e-9 standard 
-theta  =0; % 2 *pi/180; %twist angle in between two graphene sheets
+theta_all =linspace(-2,2,3)*pi/180;
+%theta  =0; % 2 *pi/180; %twist angle in between two graphene sheets
 V_kp_0 = +0.1; % Bare ferroelctricity voltage
 qc = (12e-9)^(-1); % Scattering potential shape paramaterer (value according to Brittnel)
 
@@ -51,21 +52,34 @@ for ii=1:length(V_all)
         Vg = Vg_all(jj);
         eq1 = (Q/(C0*er) - V - V_kp_0 + beta * (symsq(Q) - symsq(Q1-Q))) == 0;
         eq2  = (Q1/C1 - Vg + beta * (symsq(Q1-Q))) == 0;
-        [Q_eq,Q1_eq] = vpasolve([eq1,eq2],[Q,Q1]);
+        if jj==1
+         [Q_eq,Q1_eq] = vpasolve([eq1,eq2],[Q,Q1]);
+        else
+         [Q_eq,Q1_eq] = vpasolve([eq1,eq2],[Q,Q1],[Q_all(ii,jj-1),Q1_all(ii,jj-1)]);
+        end
         Q_all(ii,jj) = Q_eq;
         Q1_all(ii,jj) = Q1_eq;
         
         % Solve for negative polarization
         eq1 = (Q/(C0*er) - V + V_kp_0 + beta * (symsq(Q) - symsq(Q1-Q))) == 0;
         eq2  = (Q1/C1 - Vg + beta * (symsq(Q1-Q))) == 0;
-        [Q_eq,Q1_eq] = vpasolve([eq1,eq2],[Q,Q1]);
+        if jj==1
+         [Q_eq,Q1_eq] = vpasolve([eq1,eq2],[Q,Q1]);
+        else
+         [Q_eq,Q1_eq] = vpasolve([eq1,eq2],[Q,Q1],[Q_all2(ii,jj-1),Q1_all2(ii,jj-1)]);
+        end
+        
         Q_all2(ii,jj) = Q_eq;
         Q1_all2(ii,jj) = Q1_eq;
         
         % Solve for the absence of the polarization
         eq1 = (Q/(C0*er) - V  + beta * (symsq(Q) - symsq(Q1-Q))) == 0;
         eq2  = (Q1/C1 - Vg + beta * (symsq(Q1-Q))) == 0;
+        if jj==1
         [Q_eq3,Q1_eq3] = vpasolve([eq1,eq2],[Q,Q1]);
+        else
+         [Q_eq,Q1_eq] = vpasolve([eq1,eq2],[Q,Q1],[Q_all3(ii,jj-1),Q1_all3(ii,jj-1)]);
+        end
         Q_all3(ii,jj) = Q_eq3;
         Q1_all3(ii,jj) = Q1_eq3;   
         
@@ -191,6 +205,13 @@ kt1_2 = Ef_top_2*e_el/(hbar*Vf*qc);
 kt2_2 = (Ef_top_2+V_all_rep)*e_el/(hbar*Vf*qc);
 
 k_vi_2 = e_el*Vi_2/(hbar*Vf*qc);
+
+%%
+
+
+
+for kk=1:length(theta_all)
+theta = theta_all(kk)
 
 reduced_twist_vector = (8*pi/(3*1.42e-10))*sin(theta/2)/qc;
 %% current calculation
@@ -373,5 +394,15 @@ ylabel('Difference in peak positions [V]','Fontsize',20)
 legend('Numerical result','Asymptotic dependence derived from EOM-s','Fontsize',15)
 ax = gca;
 ax.FontSize = 15;
+
+end
+
+
+poz1(:,kk) = V_all(Vi_zero_locus) -V_all(Vi_zero_locus_2);
+if theta == 0 
+    poz2(:,kk) = poz1(:,kk);
+else    
+    poz2(:,kk) = V_all(Vi_zero_locus_other)-V_all(Vi_zero_locus_other_2);
+end
 
 end
